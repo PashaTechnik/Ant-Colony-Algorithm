@@ -12,7 +12,7 @@ namespace Ant_Colony_Algorithm
             stopWatch.Start();
             
             
-            SolveSalesmanProblem("berlin52", 52);
+            SolveSalesmanProblem("test10", 10);
             
             
             stopWatch.Stop();
@@ -27,7 +27,7 @@ namespace Ant_Colony_Algorithm
             Cities Berlin = new Cities(N, $"/Users/admin/Desktop/Ant Colony Algorithm/{Path}.txt");
             
             Path path = new Path(Berlin);
-            path.CreateAntGeneration(500);
+            path.CreateAntGeneration(10);
 
             Console.WriteLine($"Best: {path.BestDistance}");
 

@@ -15,10 +15,10 @@ namespace Ant_Colony_Algorithm
 
         public double BestDistance = int.MaxValue;
 
-        private readonly int alpha = 1;
-        private readonly int beta = 15;
-        private readonly double P = 0.5;
-        private readonly double Q = 10000;
+        private readonly int alpha = 3;
+        private readonly int beta = 5;
+        private readonly double P = 0.1;
+        private readonly double Q = 100;
 
 
         public Path(Cities map)
@@ -38,7 +38,8 @@ namespace Ant_Colony_Algorithm
                                              Math.Pow(map.Coordinate[i].Y - map.Coordinate[j].Y, 2));
                     distance[i, j] = distance[j, i] = value;
                     
-                    pheromones[i, j] = pheromones[j, i] = rnd.Next(1,10);
+                    //pheromones[i, j] = pheromones[j, i] = rnd.Next(1,10);
+                    pheromones[i, j] = pheromones[j, i] = 5;
                     pheromones[i, i] = 0;
                 }
             }
@@ -52,10 +53,11 @@ namespace Ant_Colony_Algorithm
 
         }
 
-        public void CreateAntGeneration(int numberOfAnts)
+        public void CreateAntGeneration(int numberOfGeneration)
         {
-            for (int i = 0; i < numberOfAnts; i++)
+            for (int i = 0; i < numberOfGeneration; i++)
             {
+                Console.WriteLine($"Number of generation:{i + 1}");
                 FindPath();
             }
         }
@@ -65,46 +67,57 @@ namespace Ant_Colony_Algorithm
             Random rnd = new Random();
             var mainPath = new List<int>(path);
             var tempPath = new List<int>();
-            Dictionary<int, double> probabilities = new Dictionary<int, double>();
-            int start = 0;
-
-            while (mainPath.Count != 0)
+            var numberOfAnts = mainPath.Count;
+            for (int z = 0; z < numberOfAnts; z++)
             {
-                
-                probabilities.Clear();
-                mainPath.Remove(start);
-
-                foreach (var i in mainPath)
+                //mainPath = new List<int>(path);
+                Dictionary<int, double> probabilities = new Dictionary<int, double>();
+                int start = 0;
+                while (mainPath.Count != 0)
                 {
-                    double sum = 0;
-
-                    foreach (var j in mainPath)
-                    {
-                        var t = Math.Pow((1 / distance[start, j]), beta);
-                        var d = Math.Pow(pheromones[start, j], alpha);
-                        sum += t * d;
-                    }
-
-                    double Probability =
-                        (Math.Pow((1 / distance[start, i]), beta) * Math.Pow(pheromones[start, i], alpha)) / sum;
-                    Probability = 100 * Probability;
-                    probabilities.Add(i, Probability);
+                    ChooseCity(probabilities, mainPath, ref start, tempPath);
                 }
+            
+                UpdatePheromones(PathLength(tempPath.ToArray()),tempPath);
+                Console.WriteLine("===================");
+                DisplayPheromones();
+                Console.WriteLine("===================");
 
-                probabilities = probabilities.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                
-                start = getNextCity(probabilities);
-                tempPath.Add(start);
+                Console.WriteLine($"Length: {PathLength(tempPath.ToArray())}");
+                if (PathLength(tempPath.ToArray()) < BestDistance)
+                {
+                    BestDistance = PathLength(tempPath.ToArray());
+                }
+                Console.WriteLine($"Number of ant:{z + 1}");
             }
             
-            updatePheromones(PathLength(tempPath.ToArray()),tempPath);
+        }
 
-            Console.WriteLine($"Length: {PathLength(tempPath.ToArray())}");
-            if (PathLength(tempPath.ToArray()) < BestDistance)
+        public void ChooseCity(Dictionary<int, double> probabilities, List<int> mainPath, ref int start, List<int> tempPath)
+        {
+            probabilities.Clear();
+            mainPath.Remove(start);
+            foreach (var i in mainPath)
             {
-                BestDistance = PathLength(tempPath.ToArray());
+                double sum = 0;
+
+                foreach (var j in mainPath)
+                {
+                    var t = Math.Pow((1 / distance[start, j]), beta);
+                    var d = Math.Pow(pheromones[start, j], alpha);
+                    sum += t * d;
+                }
+
+                double Probability =
+                    (Math.Pow((1 / distance[start, i]), beta) * Math.Pow(pheromones[start, i], alpha)) / sum;
+                Probability = 100 * Probability;
+                probabilities.Add(i, Probability);
             }
 
+            probabilities = probabilities.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+                
+            start = getNextCity(probabilities);
+            tempPath.Add(start);
         }
 
         public void DisplayPheromones()
@@ -113,13 +126,13 @@ namespace Ant_Colony_Algorithm
             {
                 for (int j = 0; j < path.Length; j++)
                 {
-                    Console.Write(pheromones[i,j] + " ");
+                    Console.Write(Math.Round(pheromones[i,j], 3) + " ");
                 }
                 Console.WriteLine();
             }
         }
 
-        public void updatePheromones(double length, List<int> tPath)
+        public void UpdatePheromones(double length, List<int> tPath)
         {
             List<List<int>> pairs = new List<List<int>>();
             for (int i = 0; i < tPath.Count - 1; i++)
@@ -132,9 +145,9 @@ namespace Ant_Colony_Algorithm
             {
                 for (int j = 0; j < path.Length; j++)
                 {
-                    if (pairs.Contains(new List<int> {i, j}))
+                    if (pairs.Contains(new List<int> {i, j}) || pairs.Contains(new List<int> {j, i}))
                     {
-                        pheromones[i, j] = (1 - P) * pheromones[i, j] + Q / length;
+                        pheromones[i, j] =  (1 - P) * pheromones[i, j] + Q / length;
                     }
                     else
                     {

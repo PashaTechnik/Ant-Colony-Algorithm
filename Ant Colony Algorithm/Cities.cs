@@ -25,18 +25,6 @@ namespace Ant_Colony_Algorithm
                     i++;
                 }
             }
-            // Coordinate[0].X = 1;
-            // Coordinate[0].Y = 1;
-            //
-            // Coordinate[1].X = 2;
-            // Coordinate[1].Y = 2;
-            //
-            // Coordinate[2].X = 5;
-            // Coordinate[2].Y = 5;
-            //
-            // Coordinate[3].X = 3;
-            // Coordinate[3].Y = 5;
-
         }
     }
 }
